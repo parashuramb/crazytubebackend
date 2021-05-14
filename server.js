@@ -1,14 +1,9 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const fs = require("fs");
 app.use(express.json());
 app.use(cors());
 const ytdl = require('ytdl-core');
-const ffmpeg = require('fluent-ffmpeg');
-
-let id = 'sDLsSQf3Hc0';
-
 
 app.get('/download', (req, res) => {
     var URL = req.query.URL;
@@ -25,28 +20,7 @@ app.get("/videoInfo", async function (request, response) {
     const info = await ytdl.getInfo(url);
     response.status(200).json(info);
 });
-
-
-// app.get('/mp3', async (req, res) => {
-//     console.log('called');
-//     var URL = req.query.URL;
-//     var name = req.query.fileName;
-//     var quality = req.query.quality;
-//     var audioBitrate = req.query.audioBitrate;
-//     var audioQuality = req.query.audioQuality;
-//     var mp3formats = req.query.mp3formats;
-//     var itag = req.query.itag;
-//     console.log('mp3formats', audioQuality, mp3formats, itag);
-//     if (mp3formats) {
-//         res.setHeader(
-//             'Content-Disposition',
-//             `attachment; filename=${name}.mp3`,
-//         );
-//         ytdl(URL, {
-//             filter: format => format['itag'] == itag
-//         }).pipe(writeableStream);
-//     }
-// });
+ 
 
 app.get("/mp3", function (request, response) {
     const videoURL = request.query.videoURL;
@@ -63,51 +37,20 @@ app.get('/downloadmp3', async (req, res) => {
         const {
             URL,
             downloadFormat,
-            quality,
             title,
         } = req.query;
-        console.log(URL, downloadFormat, quality, title);
-
-        res.header("Content-Disposition", 'attachment;\ filename=youloads.mp3');
+        console.log(URL, downloadFormat, title);
+        const attachment = `attachment;\ filename=${title}.mp3`;
+        res.header("Content-Disposition", attachment);
 
         ytdl(URL, {
             // quality: 'highestaudio',
             filter: 'audioonly',
-        }).pipe(res);
-
-
-        // if (downloadFormat === 'audio-only') {
-        //     res.setHeader(
-        //         'Content-Disposition',
-        //         `attachment; filename=${title}.mp3`,
-        //     );
-
-        //     ytdl.getInfo(URL, {
-        //         quality: 'highest'
-        //     }, function (err, info) {
-        //         const stream = ytdl.downloadFromInfo(info, {
-        //                 quality: 'highest',
-        //                 requestOptions: {
-        //                     maxRedirects: 5
-        //                 }
-        //             })
-        //             .pipe(file);
-        //     });
-
-        //     // let audioFormats = ytdl.filterFormats(info.formats, 'audioonly');
-        //     ytdl(URL, {
-        //         filter: format => format. === 'm4a' && !format.encoding
-        //     }).pipe(res);
-        // }
+        }).pipe(res); 
     } catch (e) {
         console.log(e);
     }
 });
-
-
-
-
-
 
 const PORT = process.env.PORT || 3001;
 
