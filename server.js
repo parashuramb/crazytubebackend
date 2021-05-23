@@ -9,6 +9,8 @@ app.get('/download', (req, res) => {
     var URL = req.query.URL;
     var name = req.query.fileName;
     var quality = req.query.quality;
+    name = removeEmoji(name);
+    console.log(name)
     res.header('Content-Disposition', `attachment; filename="${name}.mp4"`);
     ytdl(URL, {
         filter: format => (format.quality === quality && format['hasAudio'])
@@ -22,27 +24,17 @@ app.get("/videoInfo", async function (request, response) {
 });
  
 
-app.get("/mp3", function (request, response) {
-    const videoURL = request.query.videoURL;
-    const itag = request.query.itag;
-    console.log('itag', itag);
-    response.header("Content-Disposition", 'attachment;\ filename="video.mp3"');
-    ytdl(videoURL, {
-        filter: format => format.itag == itag
-    }).pipe(response);
-});
-
 app.get('/downloadmp3', async (req, res) => {
     try {
-        const {
+        let {
             URL,
             downloadFormat,
             title,
         } = req.query;
-        console.log(URL, downloadFormat, title);
+        // console.log(URL, downloadFormat, title);
+        title = removeEmoji(title);
         const attachment = `attachment;\ filename=${title}.mp3`;
         res.header("Content-Disposition", attachment);
-
         ytdl(URL, {
             // quality: 'highestaudio',
             filter: 'audioonly',
@@ -51,6 +43,16 @@ app.get('/downloadmp3', async (req, res) => {
         console.log(e);
     }
 });
+
+function removeEmoji(str) {
+    var ranges = [
+        '\ud83c[\udf00-\udfff]', // U+1F300 to U+1F3FF
+        '\ud83d[\udc00-\ude4f]', // U+1F400 to U+1F64F
+        '\ud83d[\ude80-\udeff]'  // U+1F680 to U+1F6FF
+      ];
+      
+    return   str = str.replace(new RegExp(ranges.join('|'), 'g'), '');
+}
 
 const PORT = process.env.PORT || 3001;
 
