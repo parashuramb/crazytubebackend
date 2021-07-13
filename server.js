@@ -68,7 +68,6 @@ function removeEmoji(str) {
         '\ud83d[\udc00-\ude4f]', // U+1F400 to U+1F64F
         '\ud83d[\ude80-\udeff]' // U+1F680 to U+1F6FF
     ];
-
     return str = str.replace(new RegExp(ranges.join('|'), 'g'), '');
 }
 
