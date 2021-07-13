@@ -1,8 +1,8 @@
 {
-  "name": "trail-2",
+  "name": "crazytube",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,7 +11,10 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "nginx": "^1.0.3",
+    "serverless": "^2.44.0",
+    "serverless-http": "^2.7.0",
     "youtube-mp3-downloader": "^0.7.7",
-    "ytdl-core": "^4.8.0"
+    "ytdl-core": "^4.8.3"
   }
 }
