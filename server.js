@@ -61,7 +61,6 @@ app.get("/", function (request, res) {
     res.send('running');
 });
 
-
 function removeEmoji(str) {
     var ranges = [
         '\ud83c[\udf00-\udfff]', // U+1F300 to U+1F3FF
