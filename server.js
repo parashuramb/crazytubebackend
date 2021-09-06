@@ -44,10 +44,12 @@ app.get('/downloadmp3', async (req, res) => {
         } = req.query;
         // console.log(URL, downloadFormat, title);
         title = removeEmoji(title);
-        const attachment = `attachment;\ filename=${title}.webm`;
+        title = title.trim();
+        console.log('title', title);
+        const attachment = 
+        "attachment; filename=\""+title+".webm\""
         res.header("Content-Disposition", attachment);
         ytdl(URL, {
-            // quality: 'highestaudio',
             filter: 'audioonly',
         }).pipe(res);
     } catch (e) {
@@ -65,7 +67,8 @@ function removeEmoji(str) {
         '\ud83d[\udc00-\ude4f]', // U+1F400 to U+1F64F
         '\ud83d[\ude80-\udeff]' // U+1F680 to U+1F6FF
     ];
-    return str = str.replace(new RegExp(ranges.join('|'), 'g'), '');
+    str = str.replace(new RegExp(ranges.join('|'), 'g'), '');
+    return str = str.trim();
 }
 
 const PORT = process.env.PORT || 3001;
