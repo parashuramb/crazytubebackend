@@ -16,10 +16,8 @@ app.get('/download', (req, res) => {
     try {
         ytdl(URL, {
             filter: format => (format.quality === quality && format['hasAudio'])
-        }).pipe(res).catch(err => {
-            console.log('err', err)
-        });
-    } catch {
+        }).pipe(res)
+    } catch (err) {
         console.log(err);
     }
 });
@@ -29,7 +27,7 @@ app.get("/videoInfo", async function (request, response) {
     try {
         const info = await ytdl.getInfo(url);
         response.status(200).json(info);
-    } catch(err) {
+    } catch (err) {
         console.log(err);
         const info = await ytdl.getInfo(url);
         response.status(200).json(info);
