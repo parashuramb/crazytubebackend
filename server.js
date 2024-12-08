@@ -3,10 +3,9 @@ const app = express();
 const cors = require("cors");
 const ffmpegStatic = require("ffmpeg-static");
 const ffmpeg = require("fluent-ffmpeg");
-const YTDlpWrap = require("yt-dlp-wrap-plus").default;
-const path = require("path");
-const ytDlpWrap = new YTDlpWrap(path.resolve(__dirname, "./yt-dlp.exe"));
+const yt = require("@ybd-project/ytdl-core");
 
+const ytdl = new yt.YtdlCore({});
 
 app.use(express.json());
 app.use(cors());
@@ -53,8 +52,9 @@ app.get("/download", async (req, res) => {
     }.mp4`
   );
   try {
-    let readableStream = ytDlpWrap.execStream([URL, "-f", "best[ext=mp4]"]);
-    readableStream.pipe(res);
+    ytdl
+      .download("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+      .then((stream) => yt.toPipeableStream(stream).pipe(res));
   } catch (err) {
     console.log("download", err);
   }
@@ -64,8 +64,8 @@ app.get("/videoInfo", async (request, response) => {
   await checkOrigin(request.headers.origin, response);
   const url = request.query.URL;
   try {
-    let metadata = await ytDlpWrap.getVideoInfo(url);
-    response.status(200).json(metadata);
+    let metadata = await ytdl.getBasicInfo(url);
+    response.status(200).json(metadata?.videoDetails);
   } catch (err) {
     response.status(200).json(err);
   }
@@ -86,14 +86,18 @@ app.get("/downloadmp3", async (req, res) => {
         }.mp3`
       );
       // Set up the command to extract MP3 audio
-      let readableStream = ytDlpWrap.execStream([URL, "-f", "best[ext=mp4]"]);
-      const ffmpegStream = ffmpeg(readableStream)
-        .audioBitrate("128")
-        .format("mp3")
-        .on("error", function (err) {
-          console.log("An error occurred: " + err.message);
+      ytdl
+        .download(URL)
+        .then((stream) => {
+          const music = yt.toPipeableStream(stream)
+          const ffmpegStream = ffmpeg(music)
+            .audioBitrate("128")
+            .format("mp3")
+            .on("error", function (err) {
+              console.log("An error occurred: " + err.message);
+            });
+          ffmpegStream.pipe(res);
         });
-      ffmpegStream.pipe(res);
     }
   } catch (e) {
     console.log("downloadmp3", e);
