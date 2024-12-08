@@ -118,6 +118,6 @@ app.listen(PORT, () => {
   console.log(`listening on ${PORT}`);
 });
 
-// module.exports = app;
+module.exports = app;
 // exports.app = functions.https.onRequest(app);
 // module.exports.handler = serverless(app);
