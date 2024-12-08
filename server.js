@@ -56,7 +56,6 @@ app.get("/download", async (req, res) => {
     const videoFormat = info.formats.find((format) => format.hasVideo);
     // Create the FFmpeg stream
     const videoStream = ytdl(videoUrl, { format: videoFormat }).pipe(res);
-
   } catch (err) {
     console.log("download", err);
   }
@@ -66,7 +65,24 @@ app.get("/videoInfo", async (request, response) => {
   await checkOrigin(request.headers.origin, response);
   const url = request.query.URL;
   try {
-    let metadata = await ytdl.getBasicInfo(url);
+    // (Optional) Below are examples, NOT the recommended options
+    const cookies = [
+      { name: "cookie1", value: "COOKIE1_HERE" },
+      { name: "cookie2", value: "COOKIE2_HERE" },
+    ];
+
+    // (Optional) http-cookie-agent / undici agent options
+    // Below are examples, NOT the recommended options
+    const agentOptions = {
+      pipelining: 5,
+      maxRedirections: 0,
+      localAddress: "127.0.0.1",
+    };
+
+    // agent should be created once if you don't want to change your cookie
+    const agent = ytdl.createAgent(cookies, agentOptions);
+
+    let metadata = await ytdl.getBasicInfo(url, { agent });
     response.status(200).json(metadata?.videoDetails);
   } catch (err) {
     response.status(200).json(err);
@@ -77,6 +93,22 @@ app.get("/downloadmp3", async (req, res) => {
   try {
     await checkOrigin(req.headers.host, res);
     let { URL, downloadFormat, title } = req.query;
+      // (Optional) Below are examples, NOT the recommended options
+      const cookies = [
+        { name: "cookie1", value: "COOKIE1_HERE" },
+        { name: "cookie2", value: "COOKIE2_HERE" },
+      ];
+  
+      // (Optional) http-cookie-agent / undici agent options
+      // Below are examples, NOT the recommended options
+      const agentOptions = {
+        pipelining: 5,
+        maxRedirections: 0,
+        localAddress: "127.0.0.1",
+      };
+  
+      // agent should be created once if you don't want to change your cookie
+      const agent = ytdl.createAgent(cookies, agentOptions);
 
     if (downloadFormat === "audio-only") {
       res.setHeader(
@@ -91,6 +123,7 @@ app.get("/downloadmp3", async (req, res) => {
       // Set up the command to extract MP3 audio
       ytdl(URL, {
         quality: "highestaudio",
+        agent
       }).pipe(res);
 
       // const stream = ytdl(URL, { Filter: "audioonly" });
