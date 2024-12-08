@@ -3,9 +3,11 @@ const app = express();
 const cors = require("cors");
 const ffmpegStatic = require("ffmpeg-static");
 const ffmpeg = require("fluent-ffmpeg");
-const ytdl = require("ytdl-core");
+const ytdlp = require("ytdlp-nodejs");
+// const fs = require("fs");
+// const { createWriteStream } = require("fs");
 app.use(express.json());
-app.use(cors()); 
+app.use(cors());
 
 ffmpeg.setFfmpegPath(ffmpegStatic);
 
@@ -39,7 +41,7 @@ const checkOrigin = (url, res) => {
 app.get("/download", async (req, res) => {
   var URL = req.query.URL;
   var name = req.query.fileName;
-  var quality = req.query.quality;
+  // var quality = req.query.quality;
   res.setHeader(
     "Content-Disposition",
     `attachment; filename=${
@@ -47,13 +49,18 @@ app.get("/download", async (req, res) => {
     }.mp4`
   );
   try {
-    ytdl(URL, {
-      filter: (format) => {
-        return format.quality === quality && format["hasAudio"];
-      },
-    }).pipe(res); 
+    const videoStream = ytdlp
+      .stream(URL, {
+        filter: "audioandvideo",
+        quality: "highest",
+      })
+      .on("error", (err) => {
+        console.log("Error streaming video: ", err);
+        res.status(500).send("Error occurred during video download");
+      });
+    videoStream.pipe(res);
   } catch (err) {
-    console.log(err);
+    console.log("download", err);
   }
 });
 
@@ -61,11 +68,14 @@ app.get("/videoInfo", async (request, response) => {
   await checkOrigin(request.headers.origin, response);
   const url = request.query.URL;
   try {
-    const info = await ytdl.getInfo(url);
+    const info = await ytdlp.thumbnail(url, {
+      quality: 'hq',
+      type: 'webp'
+    });
     response.status(200).json(info);
   } catch (err) {
     console.log(err);
-    const info = await ytdl.getInfo(url);
+    // const info = await ytdl.getInfo(url);
     response.status(200).json(info);
   }
 });
@@ -74,6 +84,7 @@ app.get("/downloadmp3", async (req, res) => {
   try {
     await checkOrigin(req.headers.host, res);
     let { URL, downloadFormat, title } = req.query;
+
     if (downloadFormat === "audio-only") {
       res.setHeader(
         "Content-Disposition",
@@ -81,21 +92,19 @@ app.get("/downloadmp3", async (req, res) => {
           "crazytube_" + encodeURIComponent(title) + "_creativebonding"
         }.mp3`
       );
-      const stream = ytdl(URL, {
-        filter: (format) => {
-          return format["hasAudio"];
-        },
-      });
-      ffmpeg(stream)
-        .audioBitrate("128")
-        .format("mp3")
-        .on("error", function (err) {
-          console.log("An error occurred: " + err.message);
+
+      const audioStream = ytdlp
+        .stream(URL, {
+          filter: "audioonly",
         })
-        .pipe(res, { end: true });
+        .on("error", (err) => {
+          console.log("Error streaming video: ", err);
+          res.status(500).send("Error occurred during video download");
+        });
+      audioStream.pipe(res);
     }
   } catch (e) {
-    console.log(e);
+    console.log("downloadmp3", e);
   }
 });
 
