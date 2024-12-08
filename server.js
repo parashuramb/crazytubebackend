@@ -4,7 +4,10 @@ const cors = require("cors");
 const ffmpegStatic = require("ffmpeg-static");
 const ffmpeg = require("fluent-ffmpeg");
 const YTDlpWrap = require("yt-dlp-wrap-plus").default;
-const ytDlpWrap = new YTDlpWrap("./yt-dlp.exe");
+const path = require("path");
+const ytDlpWrap = new YTDlpWrap(path.resolve(__dirname, "./yt-dlp.exe"));
+
+
 app.use(express.json());
 app.use(cors());
 
@@ -61,15 +64,9 @@ app.get("/videoInfo", async (request, response) => {
   await checkOrigin(request.headers.origin, response);
   const url = request.query.URL;
   try {
-    // const info = await ytdlp.thumbnail(url, {
-    //   quality: "hq",
-    //   type: "webp",
-    // });
     let metadata = await ytDlpWrap.getVideoInfo(url);
     response.status(200).json(metadata);
   } catch (err) {
-    console.log(err);
-    // const info = await ytdl.getInfo(url);
     response.status(200).json(info);
   }
 });
