@@ -67,7 +67,7 @@ app.get("/videoInfo", async (request, response) => {
     let metadata = await ytDlpWrap.getVideoInfo(url);
     response.status(200).json(metadata);
   } catch (err) {
-    response.status(200).json(info);
+    response.status(200).json(err);
   }
 });
 
