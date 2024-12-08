@@ -3,9 +3,8 @@ const app = express();
 const cors = require("cors");
 const ffmpegStatic = require("ffmpeg-static");
 const ffmpeg = require("fluent-ffmpeg");
-const ytdlp = require("ytdlp-nodejs");
-// const fs = require("fs");
-// const { createWriteStream } = require("fs");
+const YTDlpWrap = require("yt-dlp-wrap-plus").default;
+const ytDlpWrap = new YTDlpWrap("./yt-dlp.exe");
 app.use(express.json());
 app.use(cors());
 
@@ -41,24 +40,18 @@ const checkOrigin = (url, res) => {
 app.get("/download", async (req, res) => {
   var URL = req.query.URL;
   var name = req.query.fileName;
-  // var quality = req.query.quality;
+  var quality = req.query.quality;
   res.setHeader(
     "Content-Disposition",
     `attachment; filename=${
-      "crazytube_" + encodeURIComponent(name) + "_creativebonding"
+      "crazytube_" +
+      encodeURIComponent(name ? name : "video") +
+      "_creativebonding"
     }.mp4`
   );
   try {
-    const videoStream = ytdlp
-      .stream(URL, {
-        filter: "audioandvideo",
-        quality: "highest",
-      })
-      .on("error", (err) => {
-        console.log("Error streaming video: ", err);
-        res.status(500).send("Error occurred during video download");
-      });
-    videoStream.pipe(res);
+    let readableStream = ytDlpWrap.execStream([URL, "-f", "best[ext=mp4]"]);
+    readableStream.pipe(res);
   } catch (err) {
     console.log("download", err);
   }
@@ -68,11 +61,12 @@ app.get("/videoInfo", async (request, response) => {
   await checkOrigin(request.headers.origin, response);
   const url = request.query.URL;
   try {
-    const info = await ytdlp.thumbnail(url, {
-      quality: 'hq',
-      type: 'webp'
-    });
-    response.status(200).json(info);
+    // const info = await ytdlp.thumbnail(url, {
+    //   quality: "hq",
+    //   type: "webp",
+    // });
+    let metadata = await ytDlpWrap.getVideoInfo(url);
+    response.status(200).json(metadata);
   } catch (err) {
     console.log(err);
     // const info = await ytdl.getInfo(url);
@@ -89,19 +83,20 @@ app.get("/downloadmp3", async (req, res) => {
       res.setHeader(
         "Content-Disposition",
         `attachment; filename=${
-          "crazytube_" + encodeURIComponent(title) + "_creativebonding"
+          "crazytube_" +
+          encodeURIComponent(title ? title : "audio") +
+          "_creativebonding"
         }.mp3`
       );
-
-      const audioStream = ytdlp
-        .stream(URL, {
-          filter: "audioonly",
-        })
-        .on("error", (err) => {
-          console.log("Error streaming video: ", err);
-          res.status(500).send("Error occurred during video download");
+      // Set up the command to extract MP3 audio
+      let readableStream = ytDlpWrap.execStream([URL, "-f", "best[ext=mp4]"]);
+      const ffmpegStream = ffmpeg(readableStream)
+        .audioBitrate("128")
+        .format("mp3")
+        .on("error", function (err) {
+          console.log("An error occurred: " + err.message);
         });
-      audioStream.pipe(res);
+      ffmpegStream.pipe(res);
     }
   } catch (e) {
     console.log("downloadmp3", e);
