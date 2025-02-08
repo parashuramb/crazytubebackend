@@ -360,19 +360,19 @@ app.get("/downloadmp3", async (req, res) => {
       );
 
       // Set up the command to extract MP3 audio
-      ytdl(URL, {
-        quality: "highestaudio",
-        agent,
-      }).pipe(res);
+      // ytdl(URL, {
+      //   quality: "highestaudio",
+      //   agent,
+      // }).pipe(res);
 
-      // const stream = ytdl(URL, { Filter: "audioonly" });
-      // const ffmpegStream = ffmpeg(stream)
-      //   .audioBitrate("128")
-      //   .format("mp3")
-      //   .on("error", function (err) {
-      //     console.log("An error occurred: " + err.message);
-      //   });
-      // ffmpegStream.pipe(res);
+      const stream = ytdl(URL, { Filter: "audioonly" });
+      const ffmpegStream = ffmpeg(stream)
+        .audioBitrate("128")
+        .format("mp3")
+        .on("error", function (err) {
+          console.log("An error occurred: " + err.message);
+        });
+      ffmpegStream.pipe(res);
     }
   } catch (e) {
     console.log("downloadmp3", e);
