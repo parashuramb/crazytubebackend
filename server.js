@@ -3,9 +3,7 @@ const app = express();
 const cors = require("cors");
 const ffmpegStatic = require("ffmpeg-static");
 const ffmpeg = require("fluent-ffmpeg");
-// const yt = require("@ybd-project/ytdl-core");
 const ytdl = require("@distube/ytdl-core");
-// const ytdl = new yt.YtdlCore({});
 const agent = ytdl.createAgent([
   {
     domain: ".youtube.com",
